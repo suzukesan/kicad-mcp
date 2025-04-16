@@ -3,7 +3,7 @@ KiCad-specific utility functions.
 """
 import os
 import subprocess
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from kicad_mcp.config import KICAD_USER_DIR, KICAD_APP_PATH, KICAD_EXTENSIONS, ADDITIONAL_SEARCH_PATHS
 
@@ -42,8 +42,9 @@ def find_kicad_projects() -> List[Dict[str, Any]]:
     print(f"Found {len(projects)} KiCad projects")
     return projects
 
+
 def get_project_name_from_path(project_path: str) -> str:
-    """Extract the project name from a .kicad_pro file path.
+    """Extract project name from a KiCad project file path.
     
     Args:
         project_path: Path to the .kicad_pro file
@@ -52,7 +53,10 @@ def get_project_name_from_path(project_path: str) -> str:
         Project name without extension
     """
     basename = os.path.basename(project_path)
-    return basename[:-len(KICAD_EXTENSIONS["project"])]
+    if basename.endswith(KICAD_EXTENSIONS["project"]):
+        # Remove extension
+        return basename[:-len(KICAD_EXTENSIONS["project"])]
+    return basename
 
 
 def open_kicad_project(project_path: str) -> Dict[str, Any]:
@@ -81,3 +85,100 @@ def open_kicad_project(project_path: str) -> Dict[str, Any]:
     
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+def find_kicad_executable() -> Optional[str]:
+    """Find the KiCad executable in the system.
+    
+    Returns:
+        Path to KiCad executable if found, None otherwise
+    """
+    # Use the configured KiCad application path
+    import platform
+    system = platform.system()
+    
+    if system == "Windows":
+        # Check for KiCad executable in the application path
+        kicad_exe = os.path.join(KICAD_APP_PATH, "bin", "kicad.exe")
+        if os.path.exists(kicad_exe):
+            return kicad_exe
+        
+        # Try other common Windows locations
+        potential_paths = [
+            r"C:\Program Files\KiCad\bin\kicad.exe",
+            r"C:\Program Files (x86)\KiCad\bin\kicad.exe",
+            os.path.join(KICAD_APP_PATH, "kicad.exe")
+        ]
+        
+        for path in potential_paths:
+            if os.path.exists(path):
+                return path
+                
+    elif system == "Darwin":  # macOS
+        # Check for KiCad executable in the application path
+        kicad_exe = os.path.join(KICAD_APP_PATH, "Contents", "MacOS", "kicad")
+        if os.path.exists(kicad_exe):
+            return kicad_exe
+            
+    else:  # Linux and other systems
+        # Check if kicad is in PATH
+        try:
+            result = subprocess.run(["which", "kicad"], capture_output=True, text=True)
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except:
+            pass
+            
+        # Try common Linux locations
+        potential_paths = [
+            "/usr/bin/kicad",
+            "/usr/local/bin/kicad"
+        ]
+        
+        for path in potential_paths:
+            if os.path.exists(path):
+                return path
+                
+    # If we get here, KiCad executable was not found
+    return None
+
+
+def get_kicad_command() -> Optional[str]:
+    """Get the KiCad executable command.
+    
+    Returns:
+        Path to KiCad executable if found, None otherwise
+    """
+    # Check configured application path first
+    import platform
+    system = platform.system()
+    
+    if system == "Windows":
+        # For Windows, look for python.exe in KiCad's bin directory
+        python_exe = os.path.join(KICAD_APP_PATH, "bin", "python.exe")
+        if os.path.exists(python_exe):
+            return python_exe
+            
+        # Check for standard KiCad 9.0 location
+        python_exe = os.path.join(KICAD_APP_PATH, "bin", "python.exe")
+        if os.path.exists(python_exe):
+            return python_exe
+            
+    elif system == "Darwin":  # macOS
+        # For macOS, look for Python in the app bundle
+        python_exe = os.path.join(KICAD_APP_PATH, "Contents", "Frameworks", "Python.framework", 
+                                 "Versions", "Current", "bin", "python3")
+        if os.path.exists(python_exe):
+            return python_exe
+            
+    else:  # Linux and other systems
+        # Check for python3 in PATH
+        try:
+            result = subprocess.run(["which", "python3"], capture_output=True, text=True)
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except:
+            pass
+    
+    # If KiCad's Python not found, use system Python as fallback
+    return find_kicad_executable()

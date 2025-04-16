@@ -41,15 +41,31 @@ def setup_kicad_python_path():
                 site_packages.extend(glob.glob(potential_path))
     
     elif system == "Windows":
-        # Windows path - typically in Program Files
-        kicad_app_path = r"C:\Program Files\KiCad"
-        python_dirs = glob.glob(os.path.join(kicad_app_path, "lib", "python*"))
+        # Windows path - typically in Program Files, possibly under a versioned folder
+        base_kicad_path = r"C:\Program Files\KiCad"
         site_packages = []
         
-        for python_dir in python_dirs:
-            potential_path = os.path.join(python_dir, "site-packages")
-            if os.path.exists(potential_path):
-                site_packages.append(potential_path)
+        # Check for versioned directories first (e.g., 7.0, 8.0, 9.0)
+        version_dirs = glob.glob(os.path.join(base_kicad_path, "[0-9]*.[0-9]*")) # Match X.Y pattern
+        if not version_dirs:
+             # Try matching single digit versions too (e.g., 9.0)
+             version_dirs = glob.glob(os.path.join(base_kicad_path, "[0-9]*"))
+        
+        # Include the base path itself in case KiCad is installed directly there (less common now)
+        search_paths = version_dirs + [base_kicad_path] 
+        
+        print(f"Searching for KiCad Python in: {search_paths}")
+
+        for kicad_app_path in search_paths:
+            python_dirs = glob.glob(os.path.join(kicad_app_path, "lib", "python*"))
+            
+            for python_dir in python_dirs:
+                potential_path = os.path.join(python_dir, "site-packages")
+                if os.path.exists(potential_path):
+                    # Avoid adding duplicates if found via different search paths
+                    if potential_path not in site_packages:
+                        site_packages.append(potential_path)
+                        print(f"Found potential site-packages: {potential_path}")
     
     elif system == "Linux":
         # Common Linux installation paths

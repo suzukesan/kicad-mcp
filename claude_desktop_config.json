@@ -1,0 +1,26 @@
+{
+    "mcpServers": {
+      "fusion360": {
+        "command": "python",
+        "args": ["C:/Users/Owner/AppData/Roaming/Claude/fusion360-mcp-server/src/main.py", "--mcp"],
+        "cwd": "C:/Users/Owner/AppData/Roaming/Claude",
+        "env": {},
+        "disabled": false,
+        "autoApprove": []
+      },
+      "kicad": {
+        "command": "C:\\Users\\Owner\\kicad-mcp\\venv\\Scripts\\python.exe",
+        "args": [
+            "main.py"
+        ],
+        "cwd": "C:/Users/Owner/kicad-mcp",
+        "env": {
+            "PYTHONPATH": "C:/Users/Owner/kicad-mcp",
+            "KICAD_APP_PATH": "C:/Program Files/KiCad/9.0",
+            "PYTHON_EXECUTABLE": "C:/Users/Owner/kicad-mcp/venv/Scripts/python.exe"
+        },
+        "disabled": false,
+        "autoApprove": []
+      }
+    }
+  } 

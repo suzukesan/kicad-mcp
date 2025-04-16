@@ -8,6 +8,9 @@ import platform
 # Determine operating system
 system = platform.system()
 
+# KiCad version detection
+KICAD_VERSION = "9.0"  # Default to KiCad 9.0
+
 # KiCad paths based on operating system
 if system == "Darwin":  # macOS
     KICAD_USER_DIR = os.path.expanduser("~/Documents/KiCad")

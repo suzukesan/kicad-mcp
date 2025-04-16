@@ -5,10 +5,22 @@ import os
 import json
 import subprocess
 import tempfile
-from typing import Dict, Any, Optional
+import re
+from typing import Dict, Any, Optional, List, Union, Tuple
 from mcp.server.fastmcp import Context
+from mcp.server.fastmcp.exceptions import FastMCPError
 
 from kicad_mcp.config import system
+
+try:
+    from mcp.server.fastmcp.exceptions import FastMCPError
+    # Define McpError locally as FastMCPError
+    McpError = FastMCPError
+except ImportError:
+    # Fallback for backwards compatibility
+    class McpError(Exception):
+        """Exception raised for errors in the MCP API."""
+        pass
 
 async def run_drc_via_cli(pcb_file: str, ctx: Context) -> Dict[str, Any]:
     """Run DRC using KiCad command line tools.
